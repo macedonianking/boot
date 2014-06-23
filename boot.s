@@ -38,18 +38,28 @@ LOAD_SETUP_FINISH:
 LOAD_STATE_FINISH:
 	xor		%bx, %bx
 	mov		%dl, %bl
-	mov		%bx, driver_count-main
+	mov		%bx, driver_count - main
 	mov		%dh, %bl
-	mov		%bx, tracker_count-main
+	mov		%bx, tracker_count - main
 	mov		%cl, %bl
 	and		$0x3f, %bl
-	mov		%bx, sector_count
+	mov		%bx, sector_count - main
 	mov		%ch, %bl
 	mov		%cl, %bh
 	rol		$2, %bh
 	and		$0x3ff, %bx
-	mov		%bx, clinder_count
-	jmp		finish
+	mov		%bx, clinder_count - main
+
+	mov		$0x80, %dl
+	mov		$0x00, %dh
+	mov		$0x01, %cl
+	mov		$0x00, %ch
+	mov		$0x0200, %bx
+	mov		$(0x0200 + SETUPLEN),%ax
+	int		$0x13
+	jc		PRINT_FAILURE
+
+	jmp		PRINT_SUCCESS
 
 PRINT_FAILURE:
 	push	$'n'
