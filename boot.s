@@ -4,69 +4,24 @@
 .equ	SETUPLEN,4
 	.org	0x0000
 main:
-	mov		$0x07c0, %ax
-	mov		%ax, %ds
 	mov		$0x9000, %ax
 	mov		%ax, %es
-	xor		%si, %si
-	mov		%di, %di
-	mov		$512, %cx
-	rep		movsb
 
-	ljmp	$0x9000, $(go - main)
-go:
-	mov		%cs, %ax
-	mov		%ax, %ss
-	mov		%ax, %ds
-	mov		%ax, %es
-	mov		$0xff00, %bp
-	mov		%bp, %sp
-
-	mov		$0x0002, %dh
-	mov		$0x0002, %cx
-	mov		$0x0200, %bx
-	mov		$(0x0200 + SETUPLEN), %ax
-	int		$0x13
-	jnc		LOAD_SETUP_FINISH
-LOAD_SETUP_FINISH:
-	mov		$0x08, %ah
-	mov		$0x80, %dl
-	int		$0x13
-	jnc		LOAD_STATE_FINISH
-	jmp		PRINT_FAILURE
-
-LOAD_STATE_FINISH:
-	xor		%bx, %bx
-	mov		%dl, %bl
-	mov		%bx, driver_count - main
-	mov		%dh, %bl
-	mov		%bx, tracker_count - main
-	mov		%cl, %bl
-	and		$0x3f, %bl
-	mov		%bx, sector_count - main
-	mov		%ch, %bl
-	mov		%cl, %bh
-	rol		$2, %bh
-	and		$0x3ff, %bx
-	mov		%bx, clinder_count - main
-
+# read 4 sectors to 0x90000
 	mov		$0x80, %dl
 	mov		$0x00, %dh
-	mov		$0x01, %cl
+	mov		$0x02, %cl
 	mov		$0x00, %ch
-	mov		$0x0200, %bx
-	mov		$(0x0200 + SETUPLEN),%ax
+	mov		$0x0000, %bx
+	mov		$0x02, %ah
+	mov		$0x04, %al
 	int		$0x13
-	jc		PRINT_FAILURE
-
-	jmp		PRINT_SUCCESS
-
-PRINT_FAILURE:
+	jnc		L1
 	push	$'n'
 	call	PrintChar
 	add		$2, %sp
 	jmp		finish
-PRINT_SUCCESS:
+L1:
 	push	$'y'
 	call	PrintChar
 	add		$2, %sp
@@ -136,6 +91,18 @@ tracker_count:
 sector_count:
 	.short	0x0000
 clinder_count:
+	.short	0x0000
+current_tracker:
+	.short	0x0000
+current_clinder:
+	.short	0x0000
+current_sector:
+	.short	0x0000
+current_segment:
+	.short	0x0000
+current_offset:
+	.short	0x0000
+read_sectors:
 	.short	0x0000
 .LC0:
 	.string	"0123456789abcdef"

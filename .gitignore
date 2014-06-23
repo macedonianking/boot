@@ -1,3 +1,4 @@
 boot
-boot.o
+setup
+*.o
 disk.img
