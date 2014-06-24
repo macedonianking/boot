@@ -25,7 +25,7 @@ L1:
 	push	$'y'
 	call	PrintChar
 	add		$2, %sp
-	jmp		finish
+	jmp		$0x9000, $0x0000
 
 finish:
 	hlt

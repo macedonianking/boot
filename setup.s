@@ -11,15 +11,14 @@ main:
 	mov		$0xff00, %bp
 	mov		%bp, %sp
 
-	jmp		PRINT_SUCCESS
-
 # load driver paramters
 	mov		$0x08, %ah
 	mov		$0x80, %dl
 	int		$0x13
 	jnc		LOAD_STATE_FINISH
-	jmp		PRINT_FAILURE
+	jmp		FAILURE
 
+# move driver parameters to memories
 LOAD_STATE_FINISH:
 	xor		%bx, %bx
 	mov		%dl, %bl
@@ -34,7 +33,17 @@ LOAD_STATE_FINISH:
 	rol		$2, %bh
 	and		$0x3ff, %bx
 	mov		%bx, clinder_count
+	
+	mov		$0x03, %ah
+	xor		%bx, %bx
+	int		$0x10
 
+	mov		$0x1301, %ax
+	mov		$0x0007, %bx
+	mov		$16, %cx
+	mov		$MSG, %bp
+	int		$0x10
+	jmp		SUCCESS
 # initialize variables
 	movw	$0x0, current_tracker
 	movw	$(1 + SETUPLEN), current_sector
@@ -45,7 +54,7 @@ LOAD_STATE_FINISH:
 MAIN_LOAD:
 	mov		current_segment, %ax
 	cmp		$9000, %ax
-	jge		PRINT_SUCCESS
+	jge		SUCCESS
 	jmp		BEGIN_SECTORS
 END_SECTORS:
 	call	OUTPUT_CURRENT_STATE
@@ -54,24 +63,32 @@ END_SECTORS:
 	cmp		sector_count, %ax
 	jl		END_L1
 	incw	current_clinder
-
+	mov		clinder_count, %ax
+	cmp		current_clinder, %ax
+	jge		END_L1
+	xor		$0x0000, %ax
+	mov		%ax, current_clinder
+	incw	current_tracker
+	mov		tracker_count, %ax
+	cmp		current_tracker, %ax
+	jle		END_L1
 END_L1:
+	jmp		SUCCESS
 
-	jmp		PRINT_SUCCESS
+finish:
+	hlt
+	jmp		finish
 
-PRINT_FAILURE:
+# print n character to screen
+FAILURE:
 	push	$'n'
 	call	PrintChar
 	add		$2, %sp
 	jmp		finish
-PRINT_SUCCESS:
+SUCCESS:
 	push	$'y'
 	call	PrintChar
 	add		$2, %sp
-	jmp		finish
-
-finish:
-	hlt
 	jmp		finish
 
 BEGIN_SECTORS:
@@ -232,5 +249,7 @@ read_sectors:
 	.short	0x0000
 .LC0:
 	.string	"0123456789abcdef"
+MSG:
+	.string "Load system...\r\n"
 	.org	0x7fe
 	.short	0xaa55
