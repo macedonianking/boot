@@ -34,15 +34,36 @@ LOAD_STATE_FINISH:
 	and		$0x3ff, %bx
 	mov		%bx, clinder_count
 	
-	mov		$0x03, %ah
-	xor		%bx, %bx
-	int		$0x10
+# output load system message
+	push	$MSG
+	call	Print
+	add		$2, %sp
+	
+	push	driver_count
+	call	PrintHex
+	add		$2, %sp
 
-	mov		$0x1301, %ax
-	mov		$0x0007, %bx
-	mov		$16, %cx
-	mov		$MSG, %bp
-	int		$0x10
+	push	tracker_count	
+	call	PrintHex
+	add		$2, %sp
+
+	push	clinder_count
+	call	PrintHex
+	add		$2, %sp
+
+	push	sector_count
+	call	PrintHex
+	add		$2, %sp
+
+	mov		$0x1000, %ax
+	mov		%ax, %es
+	mov		$0x0000, %bx
+	mov		$0x0080, %dx
+	mov		$0x0001, %cx
+	mov		$0x0201, %ax
+	int		$0x13
+	jc		FAILURE
+
 	jmp		SUCCESS
 # initialize variables
 	movw	$0x0, current_tracker
@@ -171,7 +192,9 @@ PrintHex:
 	call	PrintChar
 	add		$2, %sp
 
+PrintHex_L1:
 	mov		%bp, %sp
+	pop		%bp
 	ret
 
 PrintInt:
@@ -224,6 +247,25 @@ PrintChar:
 	mov		$0xff, %bx
 	int		$0x10
 
+	mov		%bp, %sp
+	pop		%bp
+	ret
+
+Print:
+	push	%bp
+	mov		%sp, %bp
+
+	movw	4(%bp), %si
+Print_L2:
+	lodsb
+	cmp		$0x00, %al
+	je		Print_L1
+	mov		$0x0e, %ah
+	mov		$0xff, %bx
+	int		$0x10
+	jmp		Print_L2	
+
+Print_L1:
 	mov		%bp, %sp
 	pop		%bp
 	ret
