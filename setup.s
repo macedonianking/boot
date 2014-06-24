@@ -55,14 +55,26 @@ LOAD_STATE_FINISH:
 	call	PrintHex
 	add		$2, %sp
 
+	push	$NEWLINE
+	call	Print
+	add		$2, %sp
+
 	mov		$0x1000, %ax
 	mov		%ax, %es
-	mov		$0x0000, %bx
-	mov		$0x0080, %dx
+	mov		$0x0180, %dx
 	mov		$0x0001, %cx
+	mov		$0x0000, %bx
 	mov		$0x0201, %ax
 	int		$0x13
 	jc		FAILURE
+
+	mov		$0x1000,%ax
+	mov		%ax, %ds
+	xor		%si, %si
+	mov		(%si), %ax
+	push	%ax
+	call	PrintInt
+	add		$2, %sp
 
 	jmp		SUCCESS
 # initialize variables
@@ -293,5 +305,7 @@ read_sectors:
 	.string	"0123456789abcdef"
 MSG:
 	.string "Load system...\r\n"
+NEWLINE:
+	.string	"\r\n"
 	.org	0x7fe
 	.short	0xaa55
