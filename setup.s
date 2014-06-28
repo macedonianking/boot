@@ -43,11 +43,11 @@ LOAD_STATE_FINISH:
 	call	PrintHex
 	add		$2, %sp
 
-	push	tracker_count	
+	push	clinder_count
 	call	PrintHex
 	add		$2, %sp
 
-	push	clinder_count
+	push	tracker_count	
 	call	PrintHex
 	add		$2, %sp
 
@@ -59,54 +59,55 @@ LOAD_STATE_FINISH:
 	call	Print
 	add		$2, %sp
 
-	mov		$0x1000, %ax
-	mov		%ax, %es
-	mov		$0x0180, %dx
-	mov		$0x0001, %cx
-	mov		$0x0000, %bx
-	mov		$0x0201, %ax
-	int		$0x13
-	jc		FAILURE
-
-	mov		$0x1000,%ax
-	mov		%ax, %ds
-	xor		%si, %si
-	mov		(%si), %ax
-	push	%ax
-	call	PrintInt
-	add		$2, %sp
-
-	jmp		SUCCESS
 # initialize variables
 	movw	$0x0, current_tracker
-	movw	$(1 + SETUPLEN), current_sector
+	movw	$(2 + SETUPLEN), current_sector
 	movw	$0x0000, current_clinder
 	movw	$0x1000, current_segment 
 	movw	$0x0000, current_offset
-	addw	$1, sector_count
+	movw	$0x0000, loop_count
 MAIN_LOAD:
 	mov		current_segment, %ax
-	cmp		$9000, %ax
-	jge		SUCCESS
+	cmp		$0x9000, %ax
+	jae		SUCCESS
 	jmp		BEGIN_SECTORS
 END_SECTORS:
 	call	OUTPUT_CURRENT_STATE
 	mov		read_sectors, %ax
-	add		current_sector, %ax
-	cmp		sector_count, %ax
-	jl		END_L1
-	incw	current_clinder
-	mov		clinder_count, %ax
-	cmp		current_clinder, %ax
-	jge		END_L1
-	xor		$0x0000, %ax
-	mov		%ax, current_clinder
-	incw	current_tracker
-	mov		tracker_count, %ax
-	cmp		current_tracker, %ax
-	jle		END_L1
+	shl		$9, %ax
+	add		current_offset, %ax
+	jnc		END_L1
+	mov		current_segment, %ax
+	add		$0x1000, %ax
+	mov		%ax, current_segment
+	mov		$0x0000, %ax
 END_L1:
-	jmp		SUCCESS
+	mov		%ax, current_offset
+	mov		current_sector, %ax
+	add		read_sectors, %ax	
+	cmp		sector_count, %ax
+	jg		END_L2
+	mov		%ax, current_sector
+	jmp		MAIN_END_ONE_LOOP
+END_L2:
+	mov		$0x01, %ax
+	mov		%ax, current_sector
+	mov		current_tracker, %ax
+	inc		%ax
+	mov		%ax, current_tracker
+	cmp		tracker_count, %ax
+	jle		MAIN_END_ONE_LOOP
+	mov		$0x00, %ax
+	mov		%ax, current_tracker
+	mov		current_clinder, %ax
+	inc		%ax
+	mov		%ax, current_clinder
+	cmp		clinder_count, %ax
+	jle		MAIN_END_ONE_LOOP
+	mov		$0x00, %ax
+	mov		%ax, current_clinder
+MAIN_END_ONE_LOOP:
+	jmp		MAIN_LOAD
 
 finish:
 	hlt
@@ -124,16 +125,19 @@ SUCCESS:
 	add		$2, %sp
 	jmp		finish
 
+# computer read sectors
 BEGIN_SECTORS:
 	mov		sector_count, %ax
 	sub		current_sector, %ax
+	inc		%ax
 	mov		%ax, %dx
-	shl		$10, %dx
+	shl		$9, %dx
 	add		current_offset, %dx
 	jnc		BEGIN_SECTORS_L1	
 	mov		current_offset, %dx
 	not		%dx
-	shr		$10, %dx
+	inc		%dx
+	shr		$9, %dx
 	mov		%dx, %ax
 BEGIN_SECTORS_L1:
 	mov		%ax, read_sectors
@@ -153,19 +157,18 @@ OUTPUT_CURRENT_STATE:
 	call	PrintHex
 	add		$2, %sp
 
-# current tracker
-	push	current_tracker
-	call	PrintHex
-	add		$2, %sp
-
 # current clinder
 	push	current_clinder
 	call	PrintHex
 	add		$2, %sp
 
+# current tracker
+	push	current_tracker
+	call	PrintHex
+	add		$2, %sp
+
 # current first sector
 	mov		current_sector, %ax
-	inc		%ax
 	push	%ax
 	call	PrintHex
 	add	$2, %sp
@@ -300,6 +303,8 @@ current_segment:
 current_offset:
 	.short	0x0000
 read_sectors:
+	.short	0x0000
+loop_count:
 	.short	0x0000
 .LC0:
 	.string	"0123456789abcdef"
