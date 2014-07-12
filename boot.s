@@ -1,110 +1,161 @@
+	.file	"main.s"
 	.code16
 	.text
 	.globl	main
-.equ	SETUPLEN,4
+	.equ	TEXT_BASE, 0xb8000
+	.equ	KERNEL_START_ADDR, 0x100000
+	.equ	KERNEL_END_ADDR, 0x200000
 	.org	0x0000
 main:
-	mov		$0x9000, %ax
-	mov		%ax, %es
+	mov		$0x07c0, %ax
+	mov		%ax, %ds
+	
+	lgdt	gdt_entry
+	in		$0x92, %al
+	or		$0x02, %al
+	out		%al, $0x92
+	cli
 
-# read 4 sectors to 0x90000
-	mov		$0x80, %dl
-	mov		$0x00, %dh
-	mov		$0x02, %cl
-	mov		$0x00, %ch
-	mov		$0x0000, %bx
-	mov		$0x02, %ah
-	mov		$0x04, %al
-	int		$0x13
-	jnc		L1
-	push	$'n'
-	call	PrintChar
-	add		$2, %sp
-	jmp		finish
-L1:
-	push	$'y'
-	call	PrintChar
-	add		$2, %sp
-	jmp		$0x9000, $0x0000
+	mov		%cr0, %eax
+	or		$0x01, %eax
+	mov		%eax, %cr0
+	jmp		$0x08, $flush
+flush:
+	.code32
+	mov		$0x10, %ax	
+	mov		%ax, %ds
+	mov		%ax, %es
+	mov		%ax, %fs
+	mov		%ax, %gs
+
+	mov		$0x18, %ax
+	mov		%ax, %ss
+	xor		%esp, %esp
+	mov		%esp, %ebp
+
+	call	load_kernel
+
+	movb	$'P', (TEXT_BASE)
+	jmp		$0x20, $0x0000
 
 finish:
-	hlt
+	jmp		finish
+PRINT_Y:
+	call	printY
 	jmp		finish
 
-PrintInt:
-	push	%bp
-	mov		%sp, %bp
-	mov		$4, %cx
-PrintInt_L1:
-	push	%cx
-	mov		4(%bp), %ax
-	rol		$4, %ax
-	mov		%ax, 4(%bp)
-	and		$0xf, %ax
-	cmp		$0xa, %al
-	jge		PrintInt_L2
-	add		$'0', %al
-	jmp		PrintInt_L3	
-PrintInt_L2:	
-	sub		$0xa, %al
-	add		$'a', %al
-PrintInt_L3:
-	mov		$0x0e, %ah
-	mov		$0xff, %bx
-	int		$0x10
+PRINT_N:
+	call	printN
+	jmp		finish
+
+read_hard_disk:
+	push	%ebp
+	mov		%esp, %ebp
+
+	push	%ecx
+	push	%edx
+	push	%edi
+
+# set read sector count 1
+	mov		$0x01, %al
+	mov		$0x1f2, %dx
+	out		%al, %dx 
+
+# set read sector index
+	mov		8(%ebp), %al
+	mov		$0x1f3, %dx
+	out		%al, %dx 
+
+	mov		9(%ebp), %al
+	mov		$0x1f4, %dx
+	out		%al, %dx 
+
+	mov		10(%ebp), %al
+	mov		$0x1f5, %dx
+	out		%al, %dx 
+
+	mov		11(%ebp), %al
+	and		$0x0f, %al
+	or		$0xe0, %al
+	mov		$0x1f6, %dx
+	out		%al, %dx 
 	
-	pop		%cx
-	loop	PrintInt_L1
-	mov		%bp, %sp
-	pop		%bp
-	ret
-PrintInt_L4:
-	push	%bp
-	mov		%sp, %bp
-	mov		$4, %cx
+# output read command
+	mov		$0x20, %al
+	mov		$0x1f7, %dx
+	out		%al, %dx 
 	
-	mov		$(.LC0 - main), %di
-	mov		(%di), %al
-	mov		$0x0e, %ah
-	mov		$0xff, %bx
-	int		$0x10
+# wait hard disk read finish
+wait_hard_disk_read_finish:
+	in		%dx, %al
+	and		$0x88, %al
+	cmp		$0x08, %al
+	jnz		wait_hard_disk_read_finish	
 
-	mov		%bp, %sp
-	pop		%bp
+	mov		$0x100, %ecx
+	mov		12(%ebp), %edi
+	mov		$0x1f0, %dx
+wait_read_sector_finish:
+	in		%dx, %ax
+	mov		%ax, (%edi)
+	add		$2, %edi
+	loop	wait_read_sector_finish
+
+read_hard_disk_finish:
+	pop		%edi
+	pop		%edx
+	pop		%ecx
+
+	leave
 	ret
-PrintChar:
-	push	%bp
-	mov		%sp, %bp
 
-	mov		4(%bp), %ax
-	mov		$0x0e, %ah
-	mov		$0xff, %bx
-	int		$0x10
+load_kernel:
+	push	%ebp
+	mov		%esp, %ebp
 
-	mov		%bp, %sp
-	pop		%bp
+	sub		$8, %esp
+	movl	$0x0001, -4(%ebp)
+	movl	$KERNEL_START_ADDR, -8(%ebp)
+
+load_kernel_L1:
+	cmpl	$KERNEL_END_ADDR, -8(%ebp)
+	jae		load_kernel_L2
+	push	-8(%ebp)
+	push	-4(%ebp)
+	mov		4(%esp), %eax
+	call	read_hard_disk
+	add		$8, %esp
+
+	mov		-4(%ebp), %eax
+	inc		%eax
+	mov		%eax, -4(%ebp)
+
+	mov		-8(%ebp), %eax
+	add		$0x200, %eax
+	mov		%eax, -8(%ebp)
+	jmp		load_kernel_L1
+	
+load_kernel_L2:
+	mov		%ebp, %esp
+	pop		%ebp
 	ret
-driver_count:
-	.short	0x0000
-tracker_count:
-	.short	0x0000
-sector_count:
-	.short	0x0000
-clinder_count:
-	.short	0x0000
-current_tracker:
-	.short	0x0000
-current_clinder:
-	.short	0x0000
-current_sector:
-	.short	0x0000
-current_segment:
-	.short	0x0000
-current_offset:
-	.short	0x0000
-read_sectors:
-	.short	0x0000
-.LC0:
-	.string	"0123456789abcdef"
-	.org 0x1fe
-	.short 0xaa55
+
+printY:
+	movb	$'Y', (TEXT_BASE)
+	ret
+
+printN:
+	movb	$'N', (TEXT_BASE)
+	ret
+
+gdt_base:
+	.short	0x0000, 0x0000, 0x0000, 0x0000
+	.short	0x01ff, 0x7c00, 0x9800, 0x0040
+	.short	0xffff, 0x0000, 0x9200, 0x004f
+	.short	0xfffe, 0x0000, 0x9602, 0x00cf
+	.short	0x0100, 0x0000, 0x9a10, 0x00c0
+gdt_entry:
+	.short	39
+	.short	0x7c00+gdt_base, 0x0000
+	.org	0x1fe
+	.short	0xaa55
