@@ -8,6 +8,7 @@
 	.globl	reset_cursor	
 	.globl	output_char
 	.globl	_memcpy
+	.globl	_put_int
 	.equ	VGA_PORT_MODE, 0x3d4
 	.equ	VGA_PORT_DATA, 0x3d5
 	.equ	VGA_MODE_CURSOR_HIGH, 0x0e
@@ -190,10 +191,18 @@ _memcpy: # _memcpy(void *dst, void *src, int size)
 	push	%ebp
 	mov		%esp, %ebp
 
-	mov		8(%ebp), %ecx
-	mov		12(%ebp), %esi
-	mov		16(%ebp), %edi
+	push	%ecx
+	push	%esi
+	push	%edi
+
+	mov		16(%ebp), %ecx
+	mov		12(%ebp), %esi	
+	mov		8(%ebp),  %edi
 	rep		movsb
+
+	pop		%ecx
+	pop		%esi
+	pop		%edi
 
 	mov		%ebp, %esp
 	pop		%ebp

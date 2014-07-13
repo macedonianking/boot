@@ -8,6 +8,6 @@ void test_screen()
 {
 	int cursorX, cursorY;
 
-	write_cursor(SCREEN_W - 1, SCREEN_H - 1);
+	move_cursor(SCREEN_W - 1, SCREEN_H - 1);
 	read_cursor(&cursorX, &cursorY);
 }

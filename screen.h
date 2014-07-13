@@ -9,15 +9,16 @@
 
 #define SCREEN_W		80
 #define SCREEN_H		25
+#define BYTES_PER_CHAR	2
 
 #define TEXT_BASE_ADDR	0xb8000
 #define GET_TEXT_BASE_ADDR()	((char*) 0xb8000)
 
 // read current position
-extern void read_cursor(int *x, int *y);
+extern void read_cursor(int *px, int *py);
 
 // write current cursor position
-extern void write_cursor(int x, int y);
+extern void move_cursor(int x, int y);
 
 extern void reset_cursor_impl();
 
@@ -27,5 +28,7 @@ extern void _putc(char c);
 extern void _puts(const char *s);
 extern void _putn(char n);
 extern void _put_int(int n);
+
+extern void screen_test();
 
 #endif //TESTMAIN_SCREEN_H_

@@ -1,6 +1,8 @@
 #include "asm.h"
 #include "screen.h"
 
+static void move_up();
+static void move_dn();
 
 void read_cursor(int *x, int *y)
 {
@@ -19,7 +21,7 @@ void read_cursor(int *x, int *y)
 	*y = (int)(n / SCREEN_W);
 }
 
-void write_cursor(int x, int y)
+void move_cursor(int x, int y)
 {
 	uint16_t n;
 
@@ -49,16 +51,56 @@ void clear_screen()
 		*ptr = ' ';
 		ptr += 2;
 	}
-	write_cursor(0, 0);
+	move_cursor(0, 0);
 }
 
 void _putc(char c)
 {
+	int cx, cy;
+	char *ptr;
+	
+	read_cursor(&cx, &cy);
+	switch(c)
+	{
+		case '\n':
+			++cy;
+			cx = 0;
+			while (cy >= 25)
+			{
+				move_up();
+				--cy;
+			}
+			break;
+		case '\r':
+			cx = 0;
+			break;
+		case '\b':
+			if (cx > 0)
+				--cx;
+			break;
+		default:
+			ptr = GET_TEXT_BASE_ADDR() + (SCREEN_W * cy + cx) * BYTES_PER_CHAR;
+			*ptr = c;
+			if (++cx >= SCREEN_W)
+			{
+				cx = 0;
+				++cy;
+				while (cy >= SCREEN_H)
+				{
+					--cy;
+					move_up();
+				}
+			}
+			break;
+	}
+
+	move_cursor(cx, cy);
 }
 
 void _puts(const char *s)
 {
-
+	while (*s != '\0')
+		_putc(*s++);
 }
 
 
@@ -100,3 +142,43 @@ void print_result(int v)
 	output_char(v ? 'Y' : 'N');
 }
 
+
+void move_up()
+{
+	char *dst;
+	char *src;
+	int  size;
+
+	dst = GET_TEXT_BASE_ADDR();
+	src = dst + SCREEN_W * BYTES_PER_CHAR;
+	size = SCREEN_W * BYTES_PER_CHAR * (SCREEN_H - 1);
+	_memcpy(dst, src, size);
+
+	dst += SCREEN_W * (SCREEN_H - 1) * BYTES_PER_CHAR;
+	for (int i = 0; i < SCREEN_W; ++i)
+	{
+		*dst = ' ';
+		dst += 2;
+	}
+}
+
+void move_dn()
+{
+	char *base;
+	char *dst;
+	int n;
+
+	n = SCREEN_W * BYTES_PER_CHAR;
+	base = GET_TEXT_BASE_ADDR();
+	dst = base + (SCREEN_H - 1) * n;
+	while (dst > base)
+	{
+		_memcpy(dst, dst - n, n);
+		dst -= n;
+	}
+}
+
+void screen_test()
+{
+	_puts("This is from the kernel!!!");
+}
