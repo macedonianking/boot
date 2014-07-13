@@ -28,6 +28,7 @@ extern void _putc(char c);
 extern void _puts(const char *s);
 extern void _putn(char n);
 extern void _put_int(int n);
+extern void _delete_line();
 
 extern void screen_test();
 

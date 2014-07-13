@@ -123,7 +123,7 @@ void _put_int(int n)
 	int i;
 	char v;
 
-	ptr = GET_TEXT_BASE_ADDR();
+	_puts("0x");
 	for (int i = 7; i >= 0; --i)
 	{
 		v = (char)(n >> (i * 4));		
@@ -132,9 +132,23 @@ void _put_int(int n)
 			v = '0' + v;
 		else
 			v = v - 0x0a + 'A';
-		*ptr = v;
+		_putc(v);
+	}
+}
+
+void _delete_line()
+{
+	char *ptr;
+	int cx, cy;
+	
+	read_cursor(&cx, &cy);
+	ptr = GET_TEXT_BASE_ADDR() + cy * SCREEN_W * BYTES_PER_CHAR;
+	for (int i = 0; i < SCREEN_W; ++i)
+	{
+		*ptr = ' ';
 		ptr += 2;
 	}
+	move_cursor(0, cy);
 }
 
 void print_result(int v)
@@ -181,4 +195,5 @@ void move_dn()
 void screen_test()
 {
 	_puts("This is from the kernel!!!");
+	_delete_line();
 }
