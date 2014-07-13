@@ -1,12 +1,15 @@
 #include "screen.h"
+#include "test_screen.h"
 
 void HeadMain()
 {
+	int x;
+
 	clear_screen();
-	write_cursor(0, 0);
-	output_char('A');
+	write_cursor(0, 0);	
+	test_screen();
 L1:
-	io_hlt();
+	_io_hlt();
 	goto	L1;
 }
 

@@ -1,4 +1,9 @@
-HEAD_SOURCE := head.c screen.c asm.s
+HEAD_SOURCE := head.c \
+	screen.c \
+	test_screen.c \
+	asm.s 
+	
+
 HEAD_OBJECT:= $(patsubst %.s,%.o,$(patsubst %.c,%.o,$(HEAD_SOURCE)))
 DISK_SOURCE := boot head
 

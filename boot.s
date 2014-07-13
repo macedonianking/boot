@@ -7,6 +7,7 @@
 	.equ	KERNEL_END_ADDR, 0x200000
 	.equ	KERNEL_GDT_ADDR, 0x5000
 	.equ	KERNEL_IDT_ADDR, 0x6000
+	.equ	KERKEL_STACK_END, 0x300000
 	.org	0x0000
 main:
 	mov		$0x0000, %ax
@@ -42,7 +43,7 @@ flush:
 # set stack segment
 	mov		$0x18, %ax
 	mov		%ax, %ss
-	xor		%esp, %esp
+	mov		$KERKEL_STACK_END, %esp
 	mov		%esp, %ebp
 
 	call	load_kernel
@@ -164,7 +165,7 @@ gdt_base:
 	.short	0x0000, 0x0000, 0x0000, 0x0000
 	.short	0x00ff, 0x0000, 0x9a10, 0x00c0	# kernel code segment
 	.short	0xffff, 0x0000, 0x9200, 0x004f	# kernel data segment
-	.short	0xfeff, 0x0000, 0x9630, 0x00cf	# kernel stack segment
+	.short	0x01ff, 0x0000, 0x9600, 0x00c0	# kernel stack segment
 	.short	0x01ff, 0x7c00, 0x9800, 0x0040	# boot code segment
 gdt_entry:
 	.short	0x0fff	

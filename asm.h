@@ -5,15 +5,18 @@
 #ifndef TESTMAIN_HELP_H_
 #define TESTMAIN_HELP_H_
 
-extern char		io8_in(short port);
-extern void		io8_out(short port, char n);
+#include "bootint.h"
 
-extern short	io16_in(short port);
-extern void		io16_out(short port, short n);
+extern uint8_t	_io_in8(uint16_t port);
+extern void		_io_out8(uint16_t port, uint8_t n);
+
+extern uint16_t	_io_in16(uint16_t port);
+extern void		_io_out16(uint16_t port, uint16_t n);
 
 extern void		reset_cursor();
 extern void		output_char(char c);
 
-extern void		io_hlt();
+extern void		_io_hlt();
+extern void		_memcpy(void *dst, void *src, int size);
 
 #endif //TESTMAIN_HELP_H_

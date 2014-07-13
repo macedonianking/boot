@@ -1,17 +1,18 @@
 	.text
-	.globl	io8_in
-	.globl	io8_out
-	.globl	io16_in
-	.globl	io16_out
-	.globl	io_hlt
+	.globl	_io_in8	
+	.globl	_io_out8	
+	.globl	_io_in16	
+	.globl	_io_out16	
+	.globl	_io_hlt
 	.globl	read_hard_disk
 	.globl	reset_cursor	
 	.globl	output_char
+	.globl	_memcpy
 	.equ	VGA_PORT_MODE, 0x3d4
 	.equ	VGA_PORT_DATA, 0x3d5
 	.equ	VGA_MODE_CURSOR_HIGH, 0x0e
 	.equ	VGA_MODE_CURSOR_LOW,  0x0f
-io8_in:
+_io_in8: # char _io_in8(short port)
 	push	%ebp
 	mov		%esp, %ebp
 	push	%edx
@@ -25,7 +26,7 @@ io8_in:
 	pop		%ebp
 	ret
 
-io16_in:
+_io_in16: # short _io_in16(short port)
 	push	%ebp
 	mov		%esp, %ebp
 	push	%edx
@@ -39,7 +40,7 @@ io16_in:
 	pop		%ebp
 	ret
 
-io8_out:
+_io_out8: # void _io_out8(short port, char n)
 	push	%ebp
 	mov		%esp, %ebp
 	push	%edx
@@ -55,7 +56,7 @@ io8_out:
 	pop		%ebp
 	ret
 
-io16_out:
+_io_out16: # _io_out16(short port, short n)
 	push	%ebp
 	mov		%esp, %ebp
 	push	%edx
@@ -176,8 +177,24 @@ output_char:
 
 
 ############################################################################
-# function: io_hlt()
+# function: _io_hlt()
 ############################################################################
-io_hlt:	# void io_hlt()
+_io_hlt:	# void _io_hlt()
 	hlt
+	ret
+
+############################################################################
+# function: _memcpy(void *dst, void *src, int size)
+############################################################################
+_memcpy: # _memcpy(void *dst, void *src, int size) 
+	push	%ebp
+	mov		%esp, %ebp
+
+	mov		8(%ebp), %ecx
+	mov		12(%ebp), %esi
+	mov		16(%ebp), %edi
+	rep		movsb
+
+	mov		%ebp, %esp
+	pop		%ebp
 	ret

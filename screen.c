@@ -4,31 +4,39 @@
 
 void read_cursor(int *x, int *y)
 {
-	io8_out(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_HIGH);		
-	*x = (int) io8_in(VGA_PORT_DATA);
+	uint8_t c;
+	uint16_t n;
 
-	io8_out(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_LOW);
-	*y = (int) io8_in(VGA_PORT_DATA);
+	_io_out8(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_HIGH);		
+	c = _io_in8(VGA_PORT_DATA);
+	n = c << 8;
+
+	_io_out8(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_LOW);
+	c = _io_in8(VGA_PORT_DATA);
+	n |= c;
+
+	*x = (int)(n % SCREEN_W);
+	*y = (int)(n / SCREEN_W);
 }
 
 void write_cursor(int x, int y)
 {
-	unsigned short n;
+	uint16_t n;
 
-	n = (unsigned short)(x + y * SCREEN_W);
+	n = (uint16_t)(x + y * SCREEN_W);
 
-	io8_out(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_HIGH);
-	io8_out(VGA_PORT_DATA, (char)(n >> 8));
-	io8_out(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_LOW);
-	io8_out(VGA_PORT_DATA, (char)(n));
+	_io_out8(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_HIGH);
+	_io_out8(VGA_PORT_DATA, (uint8_t)(n >> 8));
+	_io_out8(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_LOW);
+	_io_out8(VGA_PORT_DATA, (uint8_t)(n));
 }
 
 void reset_cursor_impl()
 {
-	io8_out(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_HIGH);
-	io8_out(VGA_PORT_DATA, 0x00);
-	io8_out(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_LOW);
-	io8_out(VGA_PORT_DATA, 0x00);
+	_io_out8(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_HIGH);
+	_io_out8(VGA_PORT_DATA, 0x00);
+	_io_out8(VGA_PORT_MODE, VGA_PORT_MODE_CURSOR_LOW);
+	_io_out8(VGA_PORT_DATA, 0x00);
 }
 
 void clear_screen()
@@ -43,3 +51,52 @@ void clear_screen()
 	}
 	write_cursor(0, 0);
 }
+
+void _putc(char c)
+{
+}
+
+void _puts(const char *s)
+{
+
+}
+
+
+void _putn(char n)
+{
+	n &= (char)0x0f;
+	if (n < 0x0a)
+	{
+		output_char('0' + n);
+	}
+	else
+	{
+		output_char('A' + n - 0x0a);
+	}
+}
+
+void _put_int(int n)
+{
+	char *ptr;
+	int i;
+	char v;
+
+	ptr = GET_TEXT_BASE_ADDR();
+	for (int i = 7; i >= 0; --i)
+	{
+		v = (char)(n >> (i * 4));		
+		v &= 0x0f;
+		if (v < 0x0a)
+			v = '0' + v;
+		else
+			v = v - 0x0a + 'A';
+		*ptr = v;
+		ptr += 2;
+	}
+}
+
+void print_result(int v)
+{
+	output_char(v ? 'Y' : 'N');
+}
+

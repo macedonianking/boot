@@ -22,4 +22,10 @@ extern void write_cursor(int x, int y);
 extern void reset_cursor_impl();
 
 extern void clear_screen();
+
+extern void _putc(char c);
+extern void _puts(const char *s);
+extern void _putn(char n);
+extern void _put_int(int n);
+
 #endif //TESTMAIN_SCREEN_H_
