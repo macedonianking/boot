@@ -3,3 +3,4 @@ setup
 *.o
 disk.img
 *.swp
+*.out

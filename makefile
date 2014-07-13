@@ -15,8 +15,10 @@ boot: boot.s
 	gcc -c boot.s -o boot.o 
 	ld --oformat binary --entry main --Ttext=0x0000 -o $@ boot.o 
 
-head: $(HEAD_OBJECT)
-	ld -m elf_i386 --oformat binary --entry HeadMain --Ttext 0x0000 -o $@ $^
+head: $(HEAD_OBJECT) kernel.ld
+	ld -m elf_i386 -T kernel.ld --oformat binary -o $@ $^
+	ld -m elf_i386 -T kernel.ld --oformat elf32-i386 -o head.out $^
+
 
 %.o: %.c
 	gcc -m32 -std=gnu99 -c -o $@ $<
