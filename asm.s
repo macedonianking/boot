@@ -3,6 +3,7 @@
 	.globl	io8_out
 	.globl	io16_in
 	.globl	io16_out
+	.globl	io_hlt
 	.globl	read_hard_disk
 	.globl	reset_cursor	
 	.globl	output_char
@@ -173,3 +174,10 @@ output_char:
 	pop		%ebp
 	ret
 
+
+############################################################################
+# function: io_hlt()
+############################################################################
+io_hlt:	# void io_hlt()
+	hlt
+	ret

@@ -5,11 +5,21 @@
 	.equ	TEXT_BASE, 0xb8000
 	.equ	KERNEL_START_ADDR, 0x100000
 	.equ	KERNEL_END_ADDR, 0x200000
+	.equ	KERNEL_GDT_ADDR, 0x5000
+	.equ	KERNEL_IDT_ADDR, 0x6000
 	.org	0x0000
 main:
+	mov		$0x0000, %ax
+	mov		%ax, %es
 	mov		$0x07c0, %ax
 	mov		%ax, %ds
-	
+
+	cld
+	mov		$20, %cx
+	mov		$gdt_base, %si
+	mov		$KERNEL_GDT_ADDR, %di
+	rep		movsw
+
 	lgdt	gdt_entry
 	in		$0x92, %al
 	or		$0x02, %al
@@ -19,15 +29,17 @@ main:
 	mov		%cr0, %eax
 	or		$0x01, %eax
 	mov		%eax, %cr0
-	jmp		$0x08, $flush
+	jmp		$0x20, $flush
 flush:
 	.code32
+# set data segment
 	mov		$0x10, %ax	
 	mov		%ax, %ds
 	mov		%ax, %es
 	mov		%ax, %fs
 	mov		%ax, %gs
 
+# set stack segment
 	mov		$0x18, %ax
 	mov		%ax, %ss
 	xor		%esp, %esp
@@ -36,7 +48,7 @@ flush:
 	call	load_kernel
 
 	movb	$'P', (TEXT_BASE)
-	jmp		$0x20, $0x0000
+	jmp		$0x08, $0x0000
 
 finish:
 	jmp		finish
@@ -150,12 +162,12 @@ printN:
 
 gdt_base:
 	.short	0x0000, 0x0000, 0x0000, 0x0000
-	.short	0x01ff, 0x7c00, 0x9800, 0x0040
-	.short	0xffff, 0x0000, 0x9200, 0x004f
-	.short	0xfffe, 0x0000, 0x9602, 0x00cf
-	.short	0x0100, 0x0000, 0x9a10, 0x00c0
+	.short	0x00ff, 0x0000, 0x9a10, 0x00c0	# kernel code segment
+	.short	0xffff, 0x0000, 0x9200, 0x004f	# kernel data segment
+	.short	0xfeff, 0x0000, 0x9630, 0x00cf	# kernel stack segment
+	.short	0x01ff, 0x7c00, 0x9800, 0x0040	# boot code segment
 gdt_entry:
-	.short	39
-	.short	0x7c00+gdt_base, 0x0000
+	.short	0x0fff	
+	.short	KERNEL_GDT_ADDR, 0x0000
 	.org	0x1fe
 	.short	0xaa55

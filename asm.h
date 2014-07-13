@@ -14,4 +14,6 @@ extern void		io16_out(short port, short n);
 extern void		reset_cursor();
 extern void		output_char(char c);
 
+extern void		io_hlt();
+
 #endif //TESTMAIN_HELP_H_

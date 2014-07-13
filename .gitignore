@@ -2,3 +2,4 @@ boot
 setup
 *.o
 disk.img
+*.swp
