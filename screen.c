@@ -195,5 +195,4 @@ void move_dn()
 void screen_test()
 {
 	_puts("This is from the kernel!!!");
-	_delete_line();
 }
