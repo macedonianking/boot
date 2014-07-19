@@ -1,12 +1,17 @@
 ENTRY(HeadMain)
 SECTIONS
 {
-	. = 0x100000;
-	.text : {
+	.text 0 : AT(1M)
+	{
 		*(.text)
 	}
-	.data : {
+	_rodata_start = LOADADDR(.text) + SIZEOF(.text);
+	.rodata _rodata_start : AT(_rodata_start)
+	{
 		*(.rodata)
+	}
+	.data :
+	{
 		*(.data)
 	}
 	. = 0x300000;
