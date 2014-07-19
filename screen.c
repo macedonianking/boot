@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "asm.h"
 #include "screen.h"
 
@@ -194,5 +196,7 @@ void move_dn()
 
 void screen_test()
 {
+	char buf[1024];
+
 	_puts("This is from the kernel!!!");
 }

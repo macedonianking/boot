@@ -3,6 +3,7 @@ SECTIONS
 {
 	.text 0 : AT(1M)
 	{
+		head.o(.text)
 		*(.text)
 	}
 	_rodata_start = LOADADDR(.text) + SIZEOF(.text);

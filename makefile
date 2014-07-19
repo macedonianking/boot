@@ -1,13 +1,14 @@
-HEAD_SOURCE := head.c \
-	screen.c \
-	test_screen.c \
-	asm.s 
-	
+HEAD_HEADER := $(wildcard *.h)
+HEAD_SOURCE := asm.s
+HEAD_SOURCE += $(wildcard *.c)
+$(warning $(HEAD_SOURCE))
 
 HEAD_OBJECT:= $(patsubst %.s,%.o,$(patsubst %.c,%.o,$(HEAD_SOURCE)))
 DISK_SOURCE := boot head
 
-.PHONY: all
+CFLAGS := -m32 -c -fno-stack-protector -std=gnu99
+
+PHONY: all
 all: disk.img
 	qemu-system-i386 -hda $< -boot d
 
@@ -24,9 +25,8 @@ head: $(HEAD_OBJECT) kernel.ld
 	ld -m elf_i386 -T kernel.ld --oformat binary -o $@ $^
 	ld -m elf_i386 -T kernel.ld --oformat elf32-i386 -o head.out $^
 
-
 %.o: %.c
-	gcc -m32 -std=gnu99 -c -o $@ $<
+	gcc $(CFLAGS) -o $@ $<
 
 %.o: %.s
 	gcc -m32 -c -o $@ $<
