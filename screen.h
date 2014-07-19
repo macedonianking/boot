@@ -14,6 +14,10 @@
 #define TEXT_BASE_ADDR	0xb8000
 #define GET_TEXT_BASE_ADDR()	((char*) 0xb8000)
 
+#ifndef MAX_BUFFER_SIZE	
+#define MAX_BUFFER_SIZE		1024
+#endif
+
 // read current position
 extern void read_cursor(int *px, int *py);
 
@@ -29,6 +33,7 @@ extern void _puts(const char *s);
 extern void _putn(char n);
 extern void _put_int(int n);
 extern void _delete_line();
+extern void _printf(const char *format, ...);
 
 extern void screen_test();
 

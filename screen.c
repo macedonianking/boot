@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "asm.h"
@@ -105,6 +106,16 @@ void _puts(const char *s)
 		_putc(*s++);
 }
 
+void _printf(const char *format, ...)
+{
+	char buf[MAX_BUFFER_SIZE];
+	va_list args;
+
+	va_start(args, format);
+	vsnprintf(buf, MAX_BUFFER_SIZE, format, args);
+	va_end(args);
+	_puts(buf);
+}
 
 void _putn(char n)
 {
@@ -196,7 +207,6 @@ void move_dn()
 
 void screen_test()
 {
-	char buf[1024];
-
-	_puts("This is from the kernel!!!");
+	_printf("This is the kernel boot:%p\n", &screen_test);
 }
+
