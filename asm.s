@@ -9,10 +9,34 @@
 	.globl	output_char
 	.globl	_memcpy
 	.globl	_put_int
+
+	# interrupt program
+	.globl	divide_error, do_divide_error
+	.globl	debug_exception, do_debug_exception
+	.globl	nmi, do_nmi
+	.globl	breakpoint, do_breakpoint
+	.globl	overflow, do_overflow
+	.globl	bound, do_bound
+	.globl	invalid_opcode, do_invalid_opcode
+	.globl	coprocessor_not_available, do_coprocessor_not_available
+	.globl	double_fault, do_double_fault
+	.globl	coprocessor_segment_overrun, do_coprocessor_segment_overrun
+	.globl	invalid_tss, do_invalid_tss
+	.globl	segment_not_pressent, do_segment_not_pressent
+	.globl	stack_exception, do_stack_exception
+	.globl	protection_exception, do_protection_exception
+	.globl	page_fault, do_page_fault
+	.globl	intel_reserved, do_inter_reserved
+	.globl	coprocessor_error, do_coprocessor_error
+	.globl	default_isr, do_default_isr
+	.globl	timer, do_timer
+
 	.equ	VGA_PORT_MODE, 0x3d4
 	.equ	VGA_PORT_DATA, 0x3d5
 	.equ	VGA_MODE_CURSOR_HIGH, 0x0e
 	.equ	VGA_MODE_CURSOR_LOW,  0x0f
+	.equ	KERNEL_CODE_SEGMENT, (1 << 3)
+	.equ	KERNEL_DATA_SEGMENT, (2 << 3)
 _io_in8: # char _io_in8(short port)
 	push	%ebp
 	mov		%esp, %ebp
@@ -207,3 +231,134 @@ _memcpy: # _memcpy(void *dst, void *src, int size)
 	mov		%ebp, %esp
 	pop		%ebp
 	ret
+
+handle_interrupt:	
+	xchgl	(%esp), %eax	# &function->%eax
+	xchgl	4(%esp), %ebx	# error code->%ebx
+	pushl	%ecx
+	pushl	%edx
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebp
+	pushl	%ds
+	pushl	%es
+	pushl	%fs
+	pushl	%gs
+
+# reset data segment to kernel data segment
+	mov		$KERNEL_DATA_SEGMENT, %ecx
+	mov		%ecx, %ds
+	mov		%ecx, %es
+	mov		%ecx, %fs
+	mov		%ecx, %gs
+	
+# call handle(uint32_t error_code, char *esp);
+	lea		52(%esp), %ecx
+	pushl	%ecx
+	pushl	%ebx
+	call	*%eax
+	sub		$8, %esp
+
+	popl	%gs
+	popl	%fs
+	popl	%es
+	popl	%ds
+	popl	%ebp
+	popl	%esi
+	popl	%edi
+	popl	%edx
+	popl	%ecx
+	popl	%ebx
+	popl	%eax
+	iret	
+############################################################################
+# interrupt method
+############################################################################
+divide_error:	
+	pushl	$0x0000
+	pushl	$do_divide_error
+	jmp		handle_interrupt
+
+debug_exception:
+	pushl	$0x0000
+	pushl	$do_debug_exception
+	jmp		handle_interrupt
+
+nmi:
+	pushl	$0x0000
+	pushl	$do_nmi
+	jmp		handle_interrupt
+
+breakpoint:
+	pushl	$0x0000
+	pushl	$do_breakpoint
+	jmp		handle_interrupt
+
+overflow:
+	pushl	$0x0000
+	pushl	$do_overflow
+	jmp		handle_interrupt
+
+bound:
+	pushl	$0x0000
+	pushl	$do_bound
+	jmp		handle_interrupt
+
+invalid_opcode:
+	pushl	$0x0000
+	pushl	$do_invalid_opcode
+	jmp		handle_interrupt
+
+coprocessor_not_available:
+	pushl	$0x0000
+	pushl	$do_coprocessor_not_available
+	jmp		handle_interrupt
+
+double_fault:
+	pushl	$do_double_fault
+	jmp		handle_interrupt
+
+coprocessor_segment_overrun:
+	pushl	$0x0000
+	pushl	$do_coprocessor_segment_overrun
+	jmp		handle_interrupt
+
+invalid_tss:
+	pushl	$do_invalid_tss
+	jmp		handle_interrupt
+
+segment_not_pressent:
+	pushl	$do_segment_not_pressent
+	jmp		handle_interrupt
+
+stack_exception:
+	pushl	$do_stack_exception
+	jmp		handle_interrupt
+
+protection_exception:
+	pushl	$do_protection_exception
+	jmp		handle_interrupt
+
+page_fault:
+	pushl	$do_page_fault
+	jmp		handle_interrupt
+
+intel_reserved:
+	pushl	$0x0000
+	pushl	$do_inter_reserved
+	jmp		handle_interrupt
+
+coprocessor_error:
+	pushl	$0x0000	
+	pushl	$do_coprocessor_error
+	jmp		handle_interrupt
+
+default_isr:
+	pushl	$0x0000
+	pushl	$do_default_isr
+	jmp		handle_interrupt
+
+timer:
+	pushl	$0x0000
+	pushl	$do_timer
+	jmp		handle_interrupt
