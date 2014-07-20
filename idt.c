@@ -36,7 +36,7 @@ void initialize_idt()
 	lidt.length = IDT_TABLE_SIZE * sizeof(struct IDT_DESC) - 1;
 	lidt.offset = (uint32_t)idt_table;
 
-	set_idt_entry(0, (uint32_t)&debug_exception);
+	set_idt_entry(0, (uint32_t)&divide_error);
 	set_idt_entry(1, (uint32_t)&debug_exception);
 	set_idt_entry(2, (uint32_t)&nmi);
 	set_idt_entry(3, (uint32_t)&breakpoint);
@@ -54,13 +54,9 @@ void initialize_idt()
 	set_idt_entry(15, (uint32_t)&intel_reserved);
 	set_idt_entry(16, (uint32_t)&coprocessor_error);
 
-	_printf("length=0x%x, offset=0x%x\n", lidt.length, lidt.offset);
-	_printf("low=%x, high=%x, segment=%x, control=%x, do=%p\n",
-			item.offset_low, item.offset_high, item.segment, item.control, 
-			&default_isr);
 	__asm__("lidt %0"::"m"(lidt));
-	//_sti();
-	//__asm__("int $0x80");
+//	_sti();
+	__asm__("int $0x80");
 }
 
 static void kprint(uint32_t no, const char *desc)
@@ -110,7 +106,7 @@ void do_coprocessor_not_available(uint32_t error_code, const char *ptr)
 
 void do_double_fault(uint32_t error_code, const char *ptr)
 {
-	kprint(0x08, "do_double_fault");
+	_puts("double fault");
 }
 
 void do_coprocessor_segment_overrun(uint32_t error_code, const char *ptr)
@@ -135,7 +131,7 @@ void do_stack_exception(uint32_t error_code, const char *ptr)
 
 void do_protection_exception(uint32_t error_code, const char *ptr)
 {
-	kprint(13, "do_protection_exception");
+	_printf("do_protection_exception:%p\n", ptr);
 }
 
 void do_page_fault(uint32_t error_code, const char *ptr)
@@ -155,7 +151,7 @@ void do_coprocessor_error(uint32_t error_code, const char *ptr)
 
 void do_default_isr(uint32_t error_code, const char *ptr)
 {
-//	_puts("do_default_isr\n");
+	_printf("do_default_isr:ptr=%x\n", ptr);
 }
 
 void do_timer(uint32_t error_code, const char *ptr)

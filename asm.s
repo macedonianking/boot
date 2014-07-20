@@ -257,7 +257,7 @@ handle_interrupt:
 	pushl	%ecx
 	pushl	%ebx
 	call	*%eax
-	sub		$8, %esp
+	add		$8, %esp
 
 	popl	%gs
 	popl	%fs

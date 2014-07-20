@@ -86,4 +86,6 @@ extern void do_default_isr(uint32_t error_code, const char *ptr);
 
 extern void timer();
 extern void do_timer(uint32_t error_code, const char *ptr);
+
+extern void do_nothing_isr();
 #endif
