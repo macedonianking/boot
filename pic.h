@@ -4,10 +4,12 @@
 // master pic ports 
 #define PIC0_PORT0	0x20
 #define PIC0_PORT1	0x21
+#define PIC0_IMR	0x21
 
 // slave pic ports
 #define PIC1_PORT0	0xa0
 #define PIC1_PORT1	0xa1
+#define PIC1_IMR	0xa1
 
 #define PIC0_INT_START	0x20
 #define PIC1_INT_START	0x28
