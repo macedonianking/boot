@@ -19,4 +19,7 @@ extern void		output_char(char c);
 extern void		_io_hlt();
 extern void		_memcpy(void *dst, void *src, int size);
 
+extern void		_sti();
+extern void		_cli();
+
 #endif //TESTMAIN_HELP_H_

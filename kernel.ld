@@ -1,6 +1,8 @@
 ENTRY(HeadMain)
 SECTIONS
 {
+	gdt_table = 0x5000;
+	idt_table = 0x6000;
 	.text 0 : AT(1M)
 	{
 		head.o(.text)
