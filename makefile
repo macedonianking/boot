@@ -1,7 +1,6 @@
 HEAD_HEADER := $(wildcard *.h)
 HEAD_SOURCE := asm.s
 HEAD_SOURCE += $(wildcard *.c)
-$(warning $(HEAD_SOURCE))
 
 HEAD_OBJECT:= $(patsubst %.s,%.o,$(patsubst %.c,%.o,$(HEAD_SOURCE)))
 DISK_SOURCE := boot head

@@ -1,6 +1,8 @@
 #include "asm.h"
 #include "kernel.h"
 #include "screen.h"
+#include "pic.h"
+
 #include "idt.h"
 
 void set_idt_entry(uint32_t n, uint32_t function)
@@ -54,9 +56,9 @@ void initialize_idt()
 	set_idt_entry(15, (uint32_t)&intel_reserved);
 	set_idt_entry(16, (uint32_t)&coprocessor_error);
 
+
 	__asm__("lidt %0"::"m"(lidt));
-//	_sti();
-	__asm__("int $0x80");
+	initialize_pic();
 }
 
 static void kprint(uint32_t no, const char *desc)
