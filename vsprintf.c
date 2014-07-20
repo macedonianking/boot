@@ -724,11 +724,11 @@ int sscanf(const char * buf, const char * fmt, ...)
 
 int strnlen(const char *str, int max)
 {
-	int n;
+	const char *ptr;
 
-	for (n = 0; str[n] != '\0' && n < max; ++n)
+	for (ptr = str; max-- && *ptr != '\0'; ++ptr)
 		;
-	return  n;
+	return ptr - str;
 }
 
 int _snprintf(char * buf, size_t size, const char *fmt, ...)

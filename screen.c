@@ -207,6 +207,6 @@ void move_dn()
 
 void screen_test()
 {
-	_printf("This is the kernel boot:%p\n", &screen_test);
+	_printf("This is the %s %p", "screen_test", &screen_test);
 }
 
