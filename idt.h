@@ -6,6 +6,23 @@
 #define IDT_TABLE_SIZE		256
 #define DEFAULT_IDT_CONTROL	0x8e00
 
+#define SS_OFFSET		2
+#define ESP_OFFSET		1
+#define EFLAGS_OFFSET	0
+#define CS_OFFSET		-1
+#define EIP_OFFSET		-2
+#define EAX_OFFSET		-3
+#define EBX_OFFSET		-4
+#define ECX_OFFSET		-5
+#define	EDX_OFFSET		-6
+#define	ESI_OFFSET		-7
+#define	EDI_OFFSET		-8
+#define EBP_OFFSET		-9
+#define DS_OFFSET		-10
+#define ES_OFFSET		-11
+#define FS_OFFSET		-12	
+#define GS_OFFSET		-13
+
 typedef struct IDT_DESC
 {
 	uint16_t	offset_low;

@@ -58,6 +58,7 @@ void initialize_idt()
 
 
 	__asm__("lidt %0"::"m"(lidt));
+	__asm__("int $0x80");
 	initialize_pic();
 }
 
@@ -153,7 +154,8 @@ void do_coprocessor_error(uint32_t error_code, const char *ptr)
 
 void do_default_isr(uint32_t error_code, const char *ptr)
 {
-	_printf("do_default_isr:ptr=%x\n", ptr);
+	_printf("do_default_isr:error_code=%d, esp=%p\n", 
+			error_code, ptr);
 }
 
 void do_timer(uint32_t error_code, const char *ptr)
