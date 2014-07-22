@@ -103,4 +103,10 @@ void _test_asm()
 
 	mem_size = _memset_test(0x00300000, 0xfffff000);
 	_printf("The system memory size:%dM\n", mem_size / 1024 / 1024);	
+
+	_store_eflags(old_eflags);
+	if (is_i486)
+	{
+		_store_eflags(old_cr0);
+	}
 }
