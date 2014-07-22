@@ -158,7 +158,3 @@ void do_default_isr(uint32_t error_code, const char *ptr)
 			error_code, ptr);
 }
 
-void do_timer(uint32_t error_code, const char *ptr)
-{
-	_puts("do_timer\n");
-}

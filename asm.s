@@ -362,3 +362,9 @@ timer:
 	pushl	$0x0000
 	pushl	$do_timer
 	jmp		handle_interrupt
+
+	.globl	_inthandler21, do_inthandler21
+_inthandler21:
+	pushl	$0x0000
+	pushl	$do_inthandler21	
+	jmp		handle_interrupt
